@@ -30,8 +30,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/text");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.MediaType.Should().Be("text/plain");
-            (await response.Content.ReadAsStringAsync()).Should().Be("Hello, World!");
+            response.Content!.Headers.ContentType!.MediaType.Should().Be("text/plain");
+            (await response.Content!.ReadAsStringAsync()).Should().Be("Hello, World!");
         }
 
         [Fact]
@@ -46,8 +46,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/page");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.MediaType.Should().Be("text/html");
-            (await response.Content.ReadAsStringAsync()).Should().Contain("<html>");
+            response.Content!.Headers.ContentType!.MediaType.Should().Be("text/html");
+            (await response.Content!.ReadAsStringAsync()).Should().Contain("<html>");
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/xml");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.MediaType.Should().Be("application/xml");
+            response.Content!.Headers.ContentType!.MediaType.Should().Be("application/xml");
         }
 
         #endregion
@@ -82,7 +82,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/binary");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var content = await response.Content.ReadAsByteArrayAsync();
+            var content = await response.Content!.ReadAsByteArrayAsync();
             content.Should().Equal(0x00, 0x01, 0x02, 0xFF);
         }
 
@@ -100,7 +100,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/image.png");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var content = await response.Content.ReadAsByteArrayAsync();
+            var content = await response.Content!.ReadAsByteArrayAsync();
             content.Should().StartWith(new byte[] { 0x89, 0x50, 0x4E, 0x47 });
         }
 
@@ -120,8 +120,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/api/user");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.MediaType.Should().Be("application/json");
-            var content = await response.Content.ReadAsStringAsync();
+            response.Content!.Headers.ContentType!.MediaType.Should().Be("application/json");
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Contain("\"Id\":1");
             content.Should().Contain("\"Name\":\"John\"");
         }
@@ -143,7 +143,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/api/users");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().StartWith("[");
             content.Should().Contain("Alice");
             content.Should().Contain("Bob");
@@ -161,7 +161,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("http://localhost/api/data");
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Contain("\"Status\":\"OK\"");
             content.Should().Contain("\"Count\":42");
         }
@@ -178,7 +178,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var client = new System.Net.Http.HttpClient(handler);
             var response = await client.GetAsync("http://localhost/api/formatted");
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Contain("\n"); // Indented formatting includes newlines
         }
 
@@ -192,12 +192,12 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var handler = new TestableMessageHandler();
             handler.RespondTo().Get().ForUrl("/dynamic")
                    .With(HttpStatusCode.OK)
-                   .AndContent("text/plain", req => $"Requested: {req.RequestUri.PathAndQuery}");
+                   .AndContent("text/plain", req => $"Requested: {req.RequestUri!.PathAndQuery}");
 
             var client = new System.Net.Http.HttpClient(handler);
             var response = await client.GetAsync("http://localhost/dynamic");
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Be("Requested: /dynamic");
         }
 
@@ -212,7 +212,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var client = new System.Net.Http.HttpClient(handler);
             var response = await client.GetAsync("http://localhost/dynamic-bytes");
 
-            var content = await response.Content.ReadAsByteArrayAsync();
+            var content = await response.Content!.ReadAsByteArrayAsync();
             content.Should().Equal(0xAB, 0xCD);
         }
 
@@ -252,7 +252,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.PostAsync("http://localhost/echo", 
                 new StringContent("Hello", Encoding.UTF8, "text/plain"));
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Be("Echo: Hello");
         }
 
@@ -275,7 +275,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var client = new System.Net.Http.HttpClient(handler);
             var response = await client.GetAsync("http://localhost/async");
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Be("Async Response");
         }
 
@@ -294,7 +294,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var client = new System.Net.Http.HttpClient(handler);
             var response = await client.GetAsync("http://localhost/async-json");
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content!.ReadAsStringAsync();
             content.Should().Contain("\"Async\":true");
             content.Should().Contain("\"Message\":\"From Async\"");
         }

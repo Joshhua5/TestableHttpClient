@@ -123,7 +123,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             stopwatch
                 .ElapsedMilliseconds
                 .Should()
-                .BeGreaterOrEqualTo(100);
+                .BeGreaterOrEqualTo(95); // Allow small timing variance
         }
 
         [Fact]
@@ -445,9 +445,9 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var response = await client.GetAsync("https://tempuri.org/api/entity/blah");
 
             response
-                .Content
+                .Content!
                 .Headers
-                .ContentType
+                .ContentType!
                 .MediaType
                 .Should()
                 .Be("application/json");

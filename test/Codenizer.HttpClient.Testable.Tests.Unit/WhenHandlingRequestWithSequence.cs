@@ -14,7 +14,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var client = new System.Net.Http.HttpClient(handler);
 
             handler
-                .RespondTo("/api/hello")
+                .RespondTo().Get().ForUrl("/api/hello")
                 .WithSequence(builder => builder
                     .With(HttpStatusCode.OK)
                     .AndContent("text/plain", "response 1"))
@@ -42,7 +42,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var client = new System.Net.Http.HttpClient(handler);
 
             handler
-                .RespondTo("/api/hello")
+                .RespondTo().Get().ForUrl("/api/hello")
                 .WithSequence(builder => builder
                     .With(HttpStatusCode.OK)
                     .AndContent("text/plain", "response 1"))
@@ -68,7 +68,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
                 .Be("Received request number 4 for /api/hello but only 3 responses were configured");
         }
 
-        private string ContentOf(HttpResponseMessage response)
+        private string? ContentOf(HttpResponseMessage response)
         {
             if (response.Content != null)
             {

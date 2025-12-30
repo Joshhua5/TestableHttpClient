@@ -23,11 +23,11 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             };
 
             _handler
-                .RespondTo(HttpMethod.Get, "/api/info")
+                .RespondTo().Get().ForUrl("/api/info")
                 .With(HttpStatusCode.OK);
 
             _handler
-                .RespondTo(HttpMethod.Post, "/api/info")
+                .RespondTo().Post().ForUrl("/api/info")
                 .With(HttpStatusCode.OK);
         }
 
@@ -39,7 +39,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             _handler
                 .Requests
                 .Should()
-                .Contain(req => req.RequestUri.PathAndQuery == "/api/info");
+                .Contain(req => req.RequestUri!.PathAndQuery == "/api/info");
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             var action = () => _handler
                 .Requests
                 .Single()
-                .Content
+                .Content!
                 .ReadAsStringAsync();
 
             await action
@@ -179,8 +179,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
             
             // Using ToString() here because what's sent over the wire is the string representation
             // of the DateTimeOffset and not a strictly serialized representation.
-            capturedRequest.Content.Headers.LastModified.ToString().Should().Be(formUrlEncodedContent.Headers.LastModified.ToString());
-            capturedRequest.Content.Headers.Expires.ToString().Should().Be(formUrlEncodedContent.Headers.Expires.ToString());
+            capturedRequest.Content!.Headers.LastModified.ToString().Should().Be(formUrlEncodedContent.Headers.LastModified.ToString());
+            capturedRequest.Content!.Headers.Expires.ToString().Should().Be(formUrlEncodedContent.Headers.Expires.ToString());
             capturedRequest.Headers.Accept.Should().BeEquivalentTo(request.Headers.Accept);
         }
     }

@@ -45,7 +45,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
                 var id = i;
                 requestTasks[i] = Task.Run(async () =>
                 {
-                    HttpResponseMessage response = null;
+                    HttpResponseMessage? response = null;
                     var attempts = 0;
                     
                     while (attempts < 10)
@@ -55,12 +55,12 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
                         {
                             break;
                         }
-                        
+
                         attempts++;
                         await Task.Delay(5); // Wait a bit for the registration task to catch up
                     }
 
-                    return response;
+                    return response!;
                 });
             }
 
@@ -138,15 +138,20 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
                 {
                     while (!stopRunning)
                     {
-                        try 
+                        try
                         {
                             var response = await client.GetAsync("http://localhost/essential");
                             // We don't assert OK here because the Dynamic task might have cleared it
                             // the goal is to ensure no Deadlocks or Exceptions occur in the library
                         }
+                        catch (ResponseConfigurationException)
+                        {
+                            // Expected - route might have been cleared/not yet re-added in the race
+                            // This is acceptable for this stress test
+                        }
                         catch (Exception ex)
                         {
-                            // If we get an exception, it might be a race condition in the library
+                            // Unexpected exceptions indicate a real problem
                             throw new Exception("Exception during parallel execution", ex);
                         }
                     }

@@ -12,8 +12,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         {
             var handler = new TestableMessageHandler();
 
-            handler.RespondTo(HttpMethod.Get, "/one").With(HttpStatusCode.OK);
-            handler.RespondTo(HttpMethod.Get, "/two").With(HttpStatusCode.OK);
+            handler.RespondTo().Get().ForUrl("/one").With(HttpStatusCode.OK);
+            handler.RespondTo().Get().ForUrl("/two").With(HttpStatusCode.OK);
 
             handler.ClearConfiguredResponses();
 

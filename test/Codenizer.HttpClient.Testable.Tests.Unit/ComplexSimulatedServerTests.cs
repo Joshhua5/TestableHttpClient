@@ -98,7 +98,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             public Task<HttpResponseMessage> HandleRequestAsync(HttpRequestMessage request)
             {
-                var query = request.RequestUri.Query;
+                var query = request.RequestUri!.Query;
                 var searchTerm = "";
                 
                 if (!string.IsNullOrEmpty(query))
@@ -123,7 +123,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         {
             public Task<HttpResponseMessage> HandleRequestAsync(HttpRequestMessage request)
             {
-                if (request.RequestUri.Query.Contains("trigger=error"))
+                if (request.RequestUri!.Query.Contains("trigger=error"))
                 {
                     // In a real scenario, this might be a 500, but here we test exception propagation
                     throw new HttpRequestException("Server exploded!");

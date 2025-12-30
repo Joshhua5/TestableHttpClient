@@ -20,7 +20,7 @@ namespace Codenizer.HttpClient.Testable
     public class TestableMessageHandler : HttpMessageHandler
     {
         private readonly JsonSerializerSettings _serializerSettings;
-        private readonly List<RequestBuilder> _configuredRequests;
+        private readonly ConcurrentBag<RequestBuilder> _configuredRequests;
         private Exception? _exceptionToThrow;
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Codenizer.HttpClient.Testable
         /// <summary>
         /// Returns the list of responses that are configured for this message handler
         /// </summary>
-        public ReadOnlyCollection<RequestBuilder> ConfiguredResponses => _configuredRequests.AsReadOnly();
+        public ReadOnlyCollection<RequestBuilder> ConfiguredResponses => Array.AsReadOnly(_configuredRequests.ToArray());
 
         /// <summary>
         /// Creates a new instance without any predefined responses
@@ -46,7 +46,7 @@ namespace Codenizer.HttpClient.Testable
         public TestableMessageHandler(JsonSerializerSettings? serializerSettings)
         {
             _serializerSettings = serializerSettings ?? new JsonSerializerSettings();
-            _configuredRequests = new List<RequestBuilder>();
+            _configuredRequests = new ConcurrentBag<RequestBuilder>();
         }
 
         /// <inheritdoc />
@@ -314,7 +314,9 @@ namespace Codenizer.HttpClient.Testable
         /// </summary>
         public void ClearConfiguredResponses()
         {
-            _configuredRequests.Clear();
+            // ConcurrentBag doesn't have Clear(), so we create a new instance
+            // Note: This is not atomic, but for testing purposes it's acceptable
+            while (_configuredRequests.TryTake(out _)) { }
         }
         
         /// <summary>

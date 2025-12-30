@@ -133,7 +133,7 @@ namespace Codenizer.HttpClient.Testable
                 }
                 else if (responseBuilder.MediaType == "application/json")
                 {
-                    response.Content = new StringContent(JsonConvert.SerializeObject(responseBuilder.Data, responseBuilder.SerializerSettings ?? _serializerSettings), Encoding.UTF8, responseBuilder.MediaType);
+                    response.Content = new StringContent(JsonConvert.SerializeObject(responseBuilderData, responseBuilder.SerializerSettings ?? _serializerSettings), Encoding.UTF8, responseBuilder.MediaType);
                 }
 
                 else

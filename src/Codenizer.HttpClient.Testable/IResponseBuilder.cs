@@ -38,6 +38,8 @@ namespace Codenizer.HttpClient.Testable
         /// <returns>The current <see cref="IResponseBuilder"/> instance</returns>
         IResponseBuilder AndContent(string mimeType, Func<HttpRequestMessage, Task<object>> callback);
 
+
+
         /// <summary>
         /// Add the given HTTP headers to the response
         /// </summary>

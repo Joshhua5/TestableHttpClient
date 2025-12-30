@@ -32,6 +32,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codenizer.HttpClient.Testable.SlackServer", "src\Codenizer.HttpClient.Testable.SlackServer\Codenizer.HttpClient.Testable.SlackServer.csproj", "{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codenizer.HttpClient.Testable.SlackServer.Tests", "test\Codenizer.HttpClient.Testable.SlackServer.Tests\Codenizer.HttpClient.Testable.SlackServer.Tests.csproj", "{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +70,30 @@ Global
 		{0A28E5CE-0EDC-490A-8D28-34C79EA7D8DA}.Release|x64.Build.0 = Release|Any CPU
 		{0A28E5CE-0EDC-490A-8D28-34C79EA7D8DA}.Release|x86.ActiveCfg = Release|Any CPU
 		{0A28E5CE-0EDC-490A-8D28-34C79EA7D8DA}.Release|x86.Build.0 = Release|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Debug|x64.Build.0 = Debug|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Debug|x86.Build.0 = Debug|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Release|x64.ActiveCfg = Release|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Release|x64.Build.0 = Release|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Release|x86.ActiveCfg = Release|Any CPU
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D}.Release|x86.Build.0 = Release|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Debug|x64.Build.0 = Debug|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Debug|x86.Build.0 = Debug|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Release|x64.ActiveCfg = Release|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Release|x64.Build.0 = Release|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Release|x86.ActiveCfg = Release|Any CPU
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,6 +102,8 @@ Global
 		{CDCAE294-2AE2-4384-84AC-31DE18E095D2} = {C0192DBD-4673-4573-BF61-FD0B4EFB7D11}
 		{0A28E5CE-0EDC-490A-8D28-34C79EA7D8DA} = {F761F081-0182-4511-BAE1-57A351175020}
 		{968A65B7-FF9A-4A8B-B415-9C1C2D451B3F} = {8A5D3F82-D123-4134-82FD-FED4C582B6F6}
+		{97E9CB1B-4904-41AB-ABFE-D856D3E65C3D} = {C0192DBD-4673-4573-BF61-FD0B4EFB7D11}
+		{03CB7374-8EE1-4C27-ADF4-3B1BE4C60C11} = {F761F081-0182-4511-BAE1-57A351175020}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1B1E1F5F-E61E-406A-BC8F-ED67E04D7987}

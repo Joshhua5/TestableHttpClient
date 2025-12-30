@@ -124,5 +124,12 @@ namespace Codenizer.HttpClient.Testable
         /// <param name="value">The cookie value</param>
         /// <returns>The current <see cref="IRequestBuilder"/> instance</returns>
         IRequestBuilder WithCookie(string name, string value);
+
+        /// <summary>
+        /// Configures the response to be handled by the specified simulated server
+        /// </summary>
+        /// <param name="server">The simulated server to handle the request</param>
+        /// <returns>The current <see cref="IResponseBuilder"/> instance</returns>
+        IResponseBuilder HandledBy(ISimulatedServer server);
     }
 }

@@ -21,6 +21,10 @@ namespace Codenizer.HttpClient.Testable
     {
         private readonly JsonSerializerSettings _serializerSettings;
         private readonly ConcurrentBag<RequestBuilder> _configuredRequests;
+        private ConfiguredRequests? _configuredRequestsTree;
+        private ReadOnlyCollection<RequestBuilder>? _cachedConfiguredResponses;
+        private bool _isDirty = true;
+        private readonly object _dirtyLock = new object();
         private Exception? _exceptionToThrow;
 
         /// <summary>
@@ -31,7 +35,24 @@ namespace Codenizer.HttpClient.Testable
         /// <summary>
         /// Returns the list of responses that are configured for this message handler
         /// </summary>
-        public ReadOnlyCollection<RequestBuilder> ConfiguredResponses => Array.AsReadOnly(_configuredRequests.ToArray());
+        public ReadOnlyCollection<RequestBuilder> ConfiguredResponses
+        {
+            get
+            {
+                if (_isDirty || _cachedConfiguredResponses == null)
+                {
+                    lock (_dirtyLock)
+                    {
+                        if (_isDirty || _cachedConfiguredResponses == null)
+                        {
+                            _cachedConfiguredResponses = Array.AsReadOnly(_configuredRequests.ToArray());
+                        }
+                    }
+                }
+
+                return _cachedConfiguredResponses;
+            }
+        }
 
         /// <summary>
         /// Creates a new instance without any predefined responses
@@ -50,39 +71,59 @@ namespace Codenizer.HttpClient.Testable
         }
 
         /// <inheritdoc />
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var stopwatch = Stopwatch.StartNew();
 
-            Requests.Enqueue(CloneRequest(request));
+            Requests.Enqueue(await CloneRequestAsync(request));
 
             if (_exceptionToThrow != null)
             {
                 throw _exceptionToThrow;
             }
 
-            var configuredRequests = ConfiguredRequests.FromRequestBuilders(ConfiguredResponses);
-            var match = configuredRequests.Match(request);
+            ConfiguredRequests tree;
+
+            if (_isDirty || _configuredRequestsTree == null)
+            {
+                lock (_dirtyLock)
+                {
+                    if (_isDirty || _configuredRequestsTree == null)
+                    {
+                        _configuredRequestsTree = ConfiguredRequests.FromRequestBuilders(ConfiguredResponses);
+                        _isDirty = false;
+                    }
+                }
+            }
+
+            tree = _configuredRequestsTree;
+
+            var match = await tree.MatchAsync(request);
 
             if(match == null)
             {
+                var pathAndQuery = request.RequestUri?.PathAndQuery ?? "unknown-url";
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent($"No response configured for {request.RequestUri.PathAndQuery}{Environment.NewLine}{configuredRequests.GetCurrentConfiguration()}")
+                    Content = new StringContent($"No response configured for {pathAndQuery}{Environment.NewLine}{tree.GetCurrentConfiguration()}")
                 };
             }
 
             var responseBuilder = match;
 
+            if (responseBuilder.SimulatedServer != null)
+            {
+                return await responseBuilder.SimulatedServer.HandleRequestAsync(request);
+            }
+
             if (responseBuilder.ResponseSequence.Any())
             {
                 if (responseBuilder.ResponseSequenceCounter >= responseBuilder.ResponseSequence.Count)
                 {
+                    var pathAndQuery = request.RequestUri?.PathAndQuery ?? "unknown-url";
                     return new HttpResponseMessage(HttpStatusCode.InternalServerError)
                     {
-                        Content = new StringContent($"Received request number {responseBuilder.ResponseSequenceCounter+1} for {request.RequestUri.PathAndQuery} but only {responseBuilder.ResponseSequence.Count} responses were configured")
+                        Content = new StringContent($"Received request number {responseBuilder.ResponseSequenceCounter+1} for {pathAndQuery} but only {responseBuilder.ResponseSequence.Count} responses were configured")
                     };
                 }
 
@@ -91,7 +132,7 @@ namespace Codenizer.HttpClient.Testable
 
             if (!string.IsNullOrWhiteSpace(responseBuilder.ContentType))
             {
-                var requestContentType = request.Content.Headers.ContentType.MediaType;
+                var requestContentType = request.Content?.Headers?.ContentType?.MediaType;
 
                 if (requestContentType != responseBuilder.ContentType)
                 {
@@ -121,21 +162,38 @@ namespace Codenizer.HttpClient.Testable
                 responseBuilderData = await responseBuilder.AsyncResponseCallback(request);
             }
             
-            if (responseBuilderData != null)
+            if (responseBuilder.CachedResponseContent != null)
+            {
+                response.Content = responseBuilder.CachedResponseContent;
+            }
+            else if (responseBuilderData != null)
             {
                 if (responseBuilderData is byte[] buffer)
                 {
                     response.Content = new ByteArrayContent(buffer);
+                    if (responseBuilder.ResponseCallback == null && responseBuilder.AsyncResponseCallback == null)
+                    {
+                        responseBuilder.CachedResponseContent = response.Content;
+                    }
                 }
                 else if (responseBuilderData is string content)
                 {
                     response.Content = new StringContent(content, Encoding.UTF8, responseBuilder.MediaType);
+                    if (responseBuilder.ResponseCallback == null && responseBuilder.AsyncResponseCallback == null)
+                    {
+                        responseBuilder.CachedResponseContent = response.Content;
+                    }
                 }
                 else if (responseBuilder.MediaType == "application/json")
                 {
                     response.Content = new StringContent(JsonConvert.SerializeObject(responseBuilderData, responseBuilder.SerializerSettings ?? _serializerSettings), Encoding.UTF8, responseBuilder.MediaType);
+                    // Serialization output might depend on serializer settings which can change, 
+                    // but since they are attached to the builder we can cache it.
+                    if (responseBuilder.ResponseCallback == null && responseBuilder.AsyncResponseCallback == null)
+                    {
+                        responseBuilder.CachedResponseContent = response.Content;
+                    }
                 }
-
                 else
                 {
                     throw new InvalidOperationException(
@@ -155,18 +213,17 @@ namespace Codenizer.HttpClient.Testable
 
             if (responseBuilder.Duration > TimeSpan.Zero)
             {
-                while (stopwatch.ElapsedMilliseconds < responseBuilder.Duration.TotalMilliseconds)
+                var remainingDelay = responseBuilder.Duration - stopwatch.Elapsed;
+                if (remainingDelay > TimeSpan.Zero)
                 {
-                    Thread.Sleep(5);
+                    await Task.Delay(remainingDelay, cancellationToken);
                 }
-
-                cancellationToken.ThrowIfCancellationRequested();
             }
 
             return response;
         }
 
-        private HttpRequestMessage CloneRequest(HttpRequestMessage request)
+        private async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage request)
         {
             var clone = new HttpRequestMessage(request.Method, request.RequestUri)
             {
@@ -178,58 +235,62 @@ namespace Codenizer.HttpClient.Testable
                 clone.Headers.Add(header.Key, header.Value);
             }
 
+#if NET5_0_OR_GREATER
+            foreach (var option in request.Options)
+            {
+                clone.Options.Set(new HttpRequestOptionsKey<object?>(option.Key), option.Value);
+            }
+#else
             foreach (var property in request.Properties)
             {
                 clone.Properties.Add(property.Key, property.Value);
             }
+#endif
 
-            switch (request.Content)
+            if (request.Content != null)
             {
-                case StringContent stringContent:
-                    clone.Content = new StringContent(stringContent.ReadAsStringAsync().GetAwaiter().GetResult());
-                    break;
-                // FormUrlEncodedContent needs to be before ByteArrayContent
-                // because it inherits from it, and we need to handle it differently
-                case FormUrlEncodedContent formContent:
-                    var serialized = formContent.ReadAsStringAsync().GetAwaiter().GetResult();
-                    // serialized looks like field1=val1&field2=val2
-                    var formValues = serialized
-                        .Split('&')
-                        .Select(kv => kv.Split('='))
-                        .Select(parts => new KeyValuePair<string, string>(parts[0], parts[1]))
-                        .ToArray();
-                    clone.Content = new FormUrlEncodedContent(formValues);
-                    break;
-                case ByteArrayContent byteArrayContent:
-                    clone.Content = new ByteArrayContent(byteArrayContent.ReadAsByteArrayAsync().GetAwaiter().GetResult());
-                    break;
-                case MultipartContent multipartContent:
-                    var clonedMultipartContent = new MultipartContent();
+                switch (request.Content)
+                {
+                    case StringContent stringContent:
+                        clone.Content = new StringContent(await stringContent.ReadAsStringAsync());
+                        break;
+                    // FormUrlEncodedContent needs to be before ByteArrayContent
+                    // because it inherits from it, and we need to handle it differently
+                    case FormUrlEncodedContent formContent:
+                        var serialized = await formContent.ReadAsStringAsync();
+                        // serialized looks like field1=val1&field2=val2
+                        var formValues = serialized
+                            .Split('&')
+                            .Select(kv => kv.Split('='))
+                            .Select(parts => new KeyValuePair<string, string>(parts[0], parts[1]))
+                            .ToArray();
+                        clone.Content = new FormUrlEncodedContent(formValues);
+                        break;
+                    case ByteArrayContent byteArrayContent:
+                        clone.Content = new ByteArrayContent(await byteArrayContent.ReadAsByteArrayAsync());
+                        break;
+                    case MultipartContent multipartContent:
+                        var clonedMultipartContent = new MultipartContent();
 
-                    foreach (var part in multipartContent)
-                    {
-                        clonedMultipartContent.Add(part);
-                    }
+                        foreach (var part in multipartContent)
+                        {
+                            clonedMultipartContent.Add(part);
+                        }
 
-                    clone.Content = clonedMultipartContent;
-                    break;
-                case StreamContent streamContent:
-                    var memoryStream = new MemoryStream();
-                    streamContent.CopyToAsync(memoryStream).GetAwaiter().GetResult();
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    clone.Content = new StreamContent(memoryStream);
-                    break;
-                case null:
-                    clone.Content = null;
-                    break;
-                default:
-                    var buffer = request.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
-                    clone.Content = new ByteArrayContent(buffer);
-                    break;
-            }
+                        clone.Content = clonedMultipartContent;
+                        break;
+                    case StreamContent streamContent:
+                        var memoryStream = new MemoryStream();
+                        await streamContent.CopyToAsync(memoryStream);
+                        memoryStream.Seek(0, SeekOrigin.Begin);
+                        clone.Content = new StreamContent(memoryStream);
+                        break;
+                    default:
+                        var buffer = await request.Content.ReadAsByteArrayAsync();
+                        clone.Content = new ByteArrayContent(buffer);
+                        break;
+                }
 
-            if (clone.Content != null)
-            {
                 // Ensure we start with a clear slate
                 clone.Content.Headers.Clear();
 
@@ -252,6 +313,7 @@ namespace Codenizer.HttpClient.Testable
         {
             var requestBuilder = new RequestBuilder();
 
+            _isDirty = true;
             _configuredRequests.Add(requestBuilder);
 
             return requestBuilder;
@@ -295,6 +357,7 @@ namespace Codenizer.HttpClient.Testable
         {
             var requestBuilder = new RequestBuilder(method, pathAndQuery, contentType);
 
+            _isDirty = true;
             _configuredRequests.Add(requestBuilder);
 
             return requestBuilder;
@@ -314,6 +377,7 @@ namespace Codenizer.HttpClient.Testable
         /// </summary>
         public void ClearConfiguredResponses()
         {
+            _isDirty = true;
             // ConcurrentBag doesn't have Clear(), so we create a new instance
             // Note: This is not atomic, but for testing purposes it's acceptable
             while (_configuredRequests.TryTake(out _)) { }

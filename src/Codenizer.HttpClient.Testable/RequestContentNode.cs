@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Codenizer.HttpClient.Testable;
 
@@ -43,18 +44,18 @@ internal class RequestContentNode : RequestNode
         RequestBuilder = requestBuilder;
     }
 
-    public bool Match(HttpContent? content)
+    public async Task<bool> MatchAsync(MatchContext context)
     {
         if (_expectedContent == null && _assertion == null)
         {
             return true;
         }
 
-        if (content != null && _assertion != null)
+        if (context.Request.Content != null && _assertion != null)
         {
             try
             {
-                return _assertion(content);
+                return _assertion(context.Request.Content);
             }
             catch
             {
@@ -62,9 +63,9 @@ internal class RequestContentNode : RequestNode
             }
         }
         
-        if (content != null)
+        if (context.Request.Content != null)
         {
-            var requestContent = content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var requestContent = await context.GetRequestContentAsync();
 
             return string.Equals(_expectedContent, requestContent);
         }

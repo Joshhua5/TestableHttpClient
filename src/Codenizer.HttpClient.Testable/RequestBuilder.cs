@@ -75,13 +75,16 @@ namespace Codenizer.HttpClient.Testable
         /// </summary>
         public HttpMethod? Method { get; private set; }
         /// <summary>
-        /// Optional. The data to respond with. Use <see cref="AndContent"/> or <see cref="AndJsonContent"/> to set.
+        /// Optional. The data to respond with. Use <see cref="AndContent(string, object)"/> or <see cref="AndJsonContent"/> to set.
         /// </summary>
         public object? Data { get; private set; }
         /// <summary>
         /// Optional. The callback to invoke when generating the response to a request.
         /// </summary>
         public Func<HttpRequestMessage, object>? ResponseCallback { get; private set; }
+        /// <summary>
+        /// Optional. The async callback to invoke when generating the response to a request.
+        /// </summary>
         public Func<HttpRequestMessage, Task<object>>? AsyncResponseCallback { get; private set; }
         /// <summary>
         /// Optional. The MIME type of the content to respond with. Only applicable if <see cref="Data"/> is also provided, otherwise ignored.
@@ -127,15 +130,26 @@ namespace Codenizer.HttpClient.Testable
         /// <summary>
         /// Optional. The expected content of the request.
         /// </summary>
-        /// <summary>
-        /// Optional. The expected content of the request.
-        /// </summary>
         public string? ExpectedContent { get; private set; }
 
         /// <summary>
         /// Optional. An assertion to apply to the request content.
         /// </summary>
         public Func<HttpContent, bool>? ExpectedContentAssertion { get; private set; }
+
+        internal HttpContent? CachedResponseContent { get; set; }
+
+        /// <summary>
+        /// Optional. The simulated server to handle the request.
+        /// </summary>
+        public ISimulatedServer? SimulatedServer { get; private set; }
+
+        /// <inheritdoc />
+        public IResponseBuilder HandledBy(ISimulatedServer server)
+        {
+            SimulatedServer = server;
+            return this;
+        }
         
         /// <inheritdoc />
         public IResponseBuilder With(HttpStatusCode statusCode)
@@ -304,6 +318,12 @@ namespace Codenizer.HttpClient.Testable
             return this;
         }
 
+        /// <summary>
+        /// Sets a callback to be invoked when a request matches.
+        /// </summary>
+        /// <param name="mimeType">The media type of the response.</param>
+        /// <param name="callback">The callback function returning the response data.</param>
+        /// <returns>The current <see cref="IResponseBuilder"/> instance.</returns>
         public IResponseBuilder AndContent(string mimeType, Func<HttpRequestMessage, object> callback)
         {
             MediaType = mimeType;
@@ -312,6 +332,12 @@ namespace Codenizer.HttpClient.Testable
             return this;
         }
 
+        /// <summary>
+        /// Sets an asynchronous callback to be invoked when a request matches.
+        /// </summary>
+        /// <param name="mimeType">The media type of the response.</param>
+        /// <param name="callback">The async callback function returning the response data.</param>
+        /// <returns>The current <see cref="IResponseBuilder"/> instance.</returns>
         public IResponseBuilder AndContent(string mimeType, Func<HttpRequestMessage, Task<object>> callback)
         {
             MediaType = mimeType;

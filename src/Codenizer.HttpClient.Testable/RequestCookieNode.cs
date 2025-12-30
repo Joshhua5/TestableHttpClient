@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace Codenizer.HttpClient.Testable
 {
@@ -34,39 +35,14 @@ namespace Codenizer.HttpClient.Testable
             return true;
         }
 
-        public bool Match(HttpRequestHeaders headers)
+        public async Task<bool> MatchAsync(MatchContext context)
         {
             if (!_cookies.Any())
             {
                 return true;
             }
 
-            if (!headers.TryGetValues("Cookie", out var cookieValues))
-            {
-                return false;
-            }
-
-            var actualCookies = new Dictionary<string, string>();
-
-            foreach (var headerValue in cookieValues)
-            {
-                var parts = headerValue.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var part in parts)
-                {
-                    var kv = part.Split(new[] { '=' }, 2);
-                    var key = kv[0].Trim();
-                    var value = kv.Length > 1 ? kv[1].Trim() : "";
-                    
-                    if (actualCookies.ContainsKey(key))
-                    {
-                        actualCookies[key] = value;
-                    }
-                    else
-                    {
-                        actualCookies.Add(key, value);
-                    }
-                }
-            }
+            var actualCookies = context.GetCookies();
 
             foreach (var expectedCookie in _cookies)
             {
@@ -84,9 +60,17 @@ namespace Codenizer.HttpClient.Testable
             return true;
         }
 
-        public RequestContentNode? MatchContent(HttpContent? content)
+        public async Task<RequestContentNode?> MatchContentAsync(MatchContext context)
         {
-            return _requestContentNodes.SingleOrDefault(node => node.Match(content));
+            foreach (var node in _requestContentNodes)
+            {
+                if (await node.MatchAsync(context))
+                {
+                    return node;
+                }
+            }
+
+            return null;
         }
 
         public RequestContentNode Add(string? expectedContent)

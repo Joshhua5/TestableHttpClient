@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Codenizer.HttpClient.Testable
 {
@@ -29,10 +30,9 @@ namespace Codenizer.HttpClient.Testable
 
                     var authorityNode = schemeNode.Add(authority);
 
-                    var path = (parsedUri.IsAbsoluteUri
-                            ? parsedUri.PathAndQuery
-                            : parsedUri.OriginalString)
-                        .Split('?').First();
+                    var path = parsedUri.IsAbsoluteUri
+                            ? parsedUri.AbsolutePath
+                            : GetPathOnly(parsedUri.OriginalString);
 
                     var pathNode = authorityNode.Add(path);
 
@@ -66,6 +66,12 @@ namespace Codenizer.HttpClient.Testable
             }
         }
 
+        private static string GetPathOnly(string url)
+        {
+            var queryIndex = url.IndexOf('?');
+            return queryIndex >= 0 ? url.Substring(0, queryIndex) : url;
+        }
+
         private static void ThrowIfRouteIsNotFullyConfigured(RequestBuilder route)
         {
             if (route.Method == null)
@@ -81,8 +87,15 @@ namespace Codenizer.HttpClient.Testable
 
         public int Count { get; }
 
-        public RequestBuilder? Match(HttpRequestMessage httpRequestMessage)
+        public async Task<RequestBuilder?> MatchAsync(HttpRequestMessage httpRequestMessage)
         {
+            var context = new MatchContext(httpRequestMessage);
+
+            if (httpRequestMessage.RequestUri == null)
+            {
+                return null;
+            }
+
             var scheme = httpRequestMessage.RequestUri.IsAbsoluteUri ? httpRequestMessage.RequestUri.Scheme : "*";
             
             var methodNode = _root.Match(httpRequestMessage.Method);
@@ -109,8 +122,8 @@ namespace Codenizer.HttpClient.Testable
             }
 
             var path = httpRequestMessage.RequestUri.IsAbsoluteUri
-                ? httpRequestMessage.RequestUri.PathAndQuery.Split('?').First()
-                : httpRequestMessage.RequestUri.OriginalString.Split('?').First();
+                ? httpRequestMessage.RequestUri.AbsolutePath
+                : GetPathOnly(httpRequestMessage.RequestUri.OriginalString);
 
             var pathNode = authorityNode.Match(path);
 
@@ -124,9 +137,7 @@ namespace Codenizer.HttpClient.Testable
                 // If the URI doesn't contain query parameters the last element after
                 // a split is the entire string so we first need to check if there is
                 // a ? in the URI in the first place.
-                : httpRequestMessage.RequestUri.OriginalString.Contains('?')
-                    ? httpRequestMessage.RequestUri.OriginalString.Split('?').Last()
-                    : null;
+                : GetQueryOnly(httpRequestMessage.RequestUri.OriginalString);
 
             var queryNode = pathNode.Match(query);
 
@@ -137,11 +148,17 @@ namespace Codenizer.HttpClient.Testable
 
             var headersNode = queryNode.Match(httpRequestMessage.Headers);
             
-            var cookiesNode = headersNode?.MatchCookies(httpRequestMessage.Headers);
+            var cookiesNode = headersNode != null ? await headersNode.MatchCookiesAsync(context) : null;
 
-            var contentNode = cookiesNode?.MatchContent(httpRequestMessage.Content);
+            var contentNode = cookiesNode != null ? await cookiesNode.MatchContentAsync(context) : null;
             
             return contentNode?.RequestBuilder;
+        }
+
+        private static string? GetQueryOnly(string url)
+        {
+            var queryIndex = url.IndexOf('?');
+            return queryIndex >= 0 ? url.Substring(queryIndex + 1) : null;
         }
 
         internal static ConfiguredRequests FromRequestBuilders(IEnumerable<RequestBuilder> requestBuilders)

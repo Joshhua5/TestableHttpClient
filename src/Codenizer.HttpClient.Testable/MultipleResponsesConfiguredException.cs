@@ -17,6 +17,7 @@ namespace Codenizer.HttpClient.Testable
         }
 
         /// <inheritdoc />
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
         protected MultipleResponsesConfiguredException(SerializationInfo info, StreamingContext context)
              : base(info, context)
         {
@@ -25,6 +26,7 @@ namespace Codenizer.HttpClient.Testable
         }
 
         /// <inheritdoc />
+        [Obsolete("This API supports obsolete formatter-based serialization. It should not be called or extended by application code.")]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("numberOfResponses", NumberOfResponses);
@@ -40,9 +42,9 @@ namespace Codenizer.HttpClient.Testable
         {
             get
             {
-                if (Data.Contains(nameof(NumberOfResponses)))
+                if (Data.Contains(nameof(NumberOfResponses)) && Data[nameof(NumberOfResponses)] is int count)
                 {
-                    return (int)Data[nameof(NumberOfResponses)];
+                    return count;
                 }
 
                 return 0;
@@ -69,7 +71,7 @@ namespace Codenizer.HttpClient.Testable
             {
                 if (Data.Contains(nameof(PathAndQuery)))
                 {
-                    return (string) Data[nameof(PathAndQuery)];
+                    return Data[nameof(PathAndQuery)] as string;
                 }
 
                 return null;

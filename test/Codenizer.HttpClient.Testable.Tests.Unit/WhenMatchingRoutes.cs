@@ -8,7 +8,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 {
     public static class ConfiguredRequestsExtensions
     {
-        internal static RequestBuilder? Match(this ConfiguredRequests configuredRequests, HttpMethod method, string uri,
+        internal static async System.Threading.Tasks.Task<RequestBuilder?> MatchAsync(this ConfiguredRequests configuredRequests, HttpMethod method, string uri,
             string? accept)
         {
             var requestMessage = new HttpRequestMessage(method, uri);
@@ -17,14 +17,14 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
                 requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
             }
 
-            return configuredRequests.Match(requestMessage);
+            return await configuredRequests.MatchAsync(requestMessage);
         }
     }
 
     public class WhenMatchingRoutes
     {
         [Fact]
-        public void GivenPathWithQueryParameters_ReturnedRequestBuilderMatches()
+        public async System.Threading.Tasks.Task GivenPathWithQueryParameters_ReturnedRequestBuilderMatches()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foo/bar?blah=blurb", null);
 
@@ -35,17 +35,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foo/bar?blah=blurb",
-                    null)
+                    null))
                 .Should()
                 .Be(requestBuilder);
         }
 
         [Fact]
-        public void GivenNonConfigured_NoResultIsReturned()
+        public async System.Threading.Tasks.Task GivenNonConfigured_NoResultIsReturned()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foo/bar?blah=blurb", null);
 
@@ -56,17 +56,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/baz", 
-                    null)
+                    null))
                 .Should()
                 .BeNull();
         }
 
         [Fact]
-        public void GivenRouteWithParameter_RequestBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenRouteWithParameter_RequestBuilderIsReturned()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foos/{id}", null);
 
@@ -77,17 +77,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foos/1234", 
-                    null)
+                    null))
                 .Should()
                 .Be(requestBuilder);
         }
 
         [Fact]
-        public void GivenRouteWithParameterAndQueryString_RequestBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenRouteWithParameterAndQueryString_RequestBuilderIsReturned()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foos/{id}/?blah=baz", null);
 
@@ -98,17 +98,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foos/1234/?blah=baz", 
-                    null)
+                    null))
                 .Should()
                 .Be(requestBuilder);
         }
 
         [Fact]
-        public void GivenRouteWithParameterAndQueryStringWithoutSeparator_RequestBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenRouteWithParameterAndQueryStringWithoutSeparator_RequestBuilderIsReturned()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foos/{id}?blah=baz", null);
 
@@ -119,17 +119,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foos/1234?blah=baz", 
-                    null)
+                    null))
                 .Should()
                 .Be(requestBuilder);
         }
 
         [Fact]
-        public void GivenRouteWithParameterAndQueryStringWithoutSeparatorX_RequestBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenRouteWithParameterAndQueryStringWithoutSeparatorX_RequestBuilderIsReturned()
         {
             var routes = new List<RequestBuilder>
             {
@@ -139,17 +139,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foos/1234?blah=qux", 
-                    null)
+                    null))
                 .Should()
                 .Be(routes[1]);
         }
 
         [Fact]
-        public void GivenResponseWithAcceptHeaderAndNoAcceptHeaderInRequest_RequestDoesNotMatch()
+        public async System.Threading.Tasks.Task GivenResponseWithAcceptHeaderAndNoAcceptHeaderInRequest_RequestDoesNotMatch()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foo", null)
                 .Accepting("foo/bar");
@@ -161,17 +161,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foo", 
-                    null)
+                    null))
                 .Should()
                 .BeNull();
         }
 
         [Fact]
-        public void GivenResponseWithAcceptHeaderAndAcceptHeaderInRequestMatches_ResponseBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenResponseWithAcceptHeaderAndAcceptHeaderInRequestMatches_ResponseBuilderIsReturned()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foo", null)
                 .Accepting("foo/bar");
@@ -183,17 +183,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foo",
-                    "foo/bar")
+                    "foo/bar"))
                 .Should()
                 .NotBeNull();
         }
 
         [Fact]
-        public void GivenResponseWithAcceptHeaderAndAcceptHeaderInRequestDoesNotMatch_RequestDoesNotMatch()
+        public async System.Threading.Tasks.Task GivenResponseWithAcceptHeaderAndAcceptHeaderInRequestDoesNotMatch_RequestDoesNotMatch()
         {
             var requestBuilder = new RequestBuilder(HttpMethod.Get, "/api/foo", null)
                 .Accepting("foo/bar");
@@ -205,17 +205,17 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foo",
-                    "derp/derp")
+                    "derp/derp"))
                 .Should()
                 .BeNull();
         }
 
         [Fact]
-        public void GivenTwoResponsesWithDifferentAcceptHeaderAndAcceptHeaderInRequestMatchesSecond_ResponseBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenTwoResponsesWithDifferentAcceptHeaderAndAcceptHeaderInRequestMatchesSecond_ResponseBuilderIsReturned()
         {
             var requestBuilderOne = new RequestBuilder(HttpMethod.Get, "/api/foo", null)
                 .Accepting("foo/bar");
@@ -230,11 +230,11 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foo", 
-                    "baz/quux")
+                    "baz/quux"))
                 .Should()
                 .BeOfType<RequestBuilder>()
                 .Which
@@ -244,7 +244,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenTwoResponsesWithDifferentAcceptHeaderAndAcceptHeaderInRequestMatchesSecondWithQueryParameters_ResponseBuilderIsReturned()
+        public async System.Threading.Tasks.Task GivenTwoResponsesWithDifferentAcceptHeaderAndAcceptHeaderInRequestMatchesSecondWithQueryParameters_ResponseBuilderIsReturned()
         {
             var requestBuilderOne = new RequestBuilder(HttpMethod.Get, "/api/foo?bar=baz", null)
                 .Accepting("foo/bar");
@@ -259,11 +259,11 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary
-                .Match(
+            (await dictionary
+                .MatchAsync(
                     HttpMethod.Get,
                     "/api/foo?bar=baz", 
-                    "baz/quux")
+                    "baz/quux"))
                 .Should()
                 .BeOfType<RequestBuilder>()
                 .Which
@@ -273,7 +273,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenRouteHasExtraPartInPath_ShouldNotReturnAMatch()
+        public async System.Threading.Tasks.Task GivenRouteHasExtraPartInPath_ShouldNotReturnAMatch()
         {
             var routes = new List<RequestBuilder>
             {
@@ -282,7 +282,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var dictionary = ConfiguredRequests.FromRequestBuilders(routes);
 
-            dictionary.Match(HttpMethod.Post, "/api/v2/foos/1/bla-bla", "application/json")
+            (await dictionary.MatchAsync(HttpMethod.Post, "/api/v2/foos/1/bla-bla", "application/json"))
                 .Should()
                 .BeNull();
         }

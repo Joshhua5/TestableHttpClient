@@ -24,7 +24,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenGetRequestForFullyQualifiedUrl_MatchingExactRequestSucceeds()
+        public async System.Threading.Tasks.Task GivenGetRequestForFullyQualifiedUrl_MatchingExactRequestSucceeds()
         {
             var builder = new RequestBuilder(
                 HttpMethod.Get,
@@ -33,8 +33,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var configuredRequests = ConfiguredRequests.FromRequestBuilders(new[] { builder });
 
-            var match = configuredRequests
-                .Match(new HttpRequestMessage(HttpMethod.Get,
+            var match = await configuredRequests
+                .MatchAsync(new HttpRequestMessage(HttpMethod.Get,
                     "https://blog.codenizer.nl/api/v1/some/entity?query=param&query=blah&foo=bar"));
 
             match
@@ -43,7 +43,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenGetRequestForRelativeUrl_MatchingRelativeRequestSucceeds()
+        public async System.Threading.Tasks.Task GivenGetRequestForRelativeUrl_MatchingRelativeRequestSucceeds()
         {
             var builder = new RequestBuilder(
                 HttpMethod.Get,
@@ -52,8 +52,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var configuredRequests = ConfiguredRequests.FromRequestBuilders(new[] { builder });
 
-            var match = configuredRequests
-                .Match(new HttpRequestMessage(HttpMethod.Get,
+            var match = await configuredRequests
+                .MatchAsync(new HttpRequestMessage(HttpMethod.Get,
                     "/api/v1/some/entity?query=param&query=blah&foo=bar"));
 
             match
@@ -62,7 +62,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenGetRequestForRelativeUrl_MatchingPostRequestFails()
+        public async System.Threading.Tasks.Task GivenGetRequestForRelativeUrl_MatchingPostRequestFails()
         {
             var builder = new RequestBuilder(
                 HttpMethod.Get,
@@ -71,8 +71,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var configuredRequests = ConfiguredRequests.FromRequestBuilders(new[] { builder });
 
-            var match = configuredRequests
-                .Match(new HttpRequestMessage(HttpMethod.Post,
+            var match = await configuredRequests
+                .MatchAsync(new HttpRequestMessage(HttpMethod.Post,
                     "/api/v1/some/entity?query=param&query=blah&foo=bar")
                 {
                     Content = new StringContent("{}", Encoding.UTF8, "application/json")
@@ -84,7 +84,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenGetRequestForRelativeUrlWithQueryParams_MatchingRequestWithoutQueryParamsFails()
+        public async System.Threading.Tasks.Task GivenGetRequestForRelativeUrlWithQueryParams_MatchingRequestWithoutQueryParamsFails()
         {
             var builder = new RequestBuilder(
                 HttpMethod.Get,
@@ -93,8 +93,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var configuredRequests = ConfiguredRequests.FromRequestBuilders(new[] { builder });
 
-            var match = configuredRequests
-                .Match(new HttpRequestMessage(HttpMethod.Get,
+            var match = await configuredRequests
+                .MatchAsync(new HttpRequestMessage(HttpMethod.Get,
                     "/api/v1/some/entity"));
 
             match
@@ -103,7 +103,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenGetRequestForRelativeUrlWithQueryParams_MatchingRequestWithDifferentQueryParamValueFails()
+        public async System.Threading.Tasks.Task GivenGetRequestForRelativeUrlWithQueryParams_MatchingRequestWithDifferentQueryParamValueFails()
         {
             var builder = new RequestBuilder(
                 HttpMethod.Get,
@@ -112,8 +112,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var configuredRequests = ConfiguredRequests.FromRequestBuilders(new[] { builder });
 
-            var match = configuredRequests
-                .Match(new HttpRequestMessage(HttpMethod.Get,
+            var match = await configuredRequests
+                .MatchAsync(new HttpRequestMessage(HttpMethod.Get,
                     "/api/v1/some/entity?query=bar"));
 
             match
@@ -122,7 +122,7 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
         }
 
         [Fact]
-        public void GivenGetRequestWithAcceptHeader_MatchingRequestWithoutAcceptHeaderFails()
+        public async System.Threading.Tasks.Task GivenGetRequestWithAcceptHeader_MatchingRequestWithoutAcceptHeaderFails()
         {
             var builder = new RequestBuilder(
                 HttpMethod.Get,
@@ -133,8 +133,8 @@ namespace Codenizer.HttpClient.Testable.Tests.Unit
 
             var configuredRequests = ConfiguredRequests.FromRequestBuilders(new[] { builder });
 
-            var match = configuredRequests
-                .Match(new HttpRequestMessage(HttpMethod.Get,
+            var match = await configuredRequests
+                .MatchAsync(new HttpRequestMessage(HttpMethod.Get,
                     "/api/v1/some/entity?query=param"));
 
             match

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace Codenizer.HttpClient.Testable
 {
@@ -26,7 +27,7 @@ namespace Codenizer.HttpClient.Testable
 
             foreach (var kv in _headers)
             {
-                if (!headers.Any(h => h.Key == kv.Key && h.Value == kv.Value))
+                if (!headers.TryGetValue(kv.Key, out var value) || value != kv.Value)
                 {
                     return false;
                 }
@@ -41,12 +42,22 @@ namespace Codenizer.HttpClient.Testable
             {
                 if (headers.TryGetValues(kv.Key, out var values))
                 {
-                    if (values.All(v => !string.Equals(v, kv.Value, System.StringComparison.OrdinalIgnoreCase)))
+                    var found = false;
+                    foreach (var v in values)
+                    {
+                        if (string.Equals(v, kv.Value, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found)
                     {
                         return false;
                     }
                 }
-                else if (kv.Key == "Content-Type" && _headers.ContainsKey("Content-Type"))
+                else if (kv.Key == "Content-Type")
                 {
                     // TODO: Remove this in a future release (2.4.x)
                     // This check is only here for backwards compatibility
@@ -65,9 +76,17 @@ namespace Codenizer.HttpClient.Testable
             return true;
         }
 
-        public RequestCookieNode? MatchCookies(HttpRequestHeaders headers)
+        public async Task<RequestCookieNode?> MatchCookiesAsync(MatchContext context)
         {
-            return _requestCookieNodes.SingleOrDefault(node => node.Match(headers));
+            foreach (var node in _requestCookieNodes)
+            {
+                if (await node.MatchAsync(context))
+                {
+                    return node;
+                }
+            }
+
+            return null;
         }
 
         public override void Accept(RequestNodeVisitor visitor)

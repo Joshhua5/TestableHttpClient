@@ -63,15 +63,14 @@ namespace Codenizer.HttpClient.Testable
                 throw _exceptionToThrow;
             }
 
-            var match = ConfiguredRequests
-                .FromRequestBuilders(ConfiguredResponses)
-                .Match(request);
+            var configuredRequests = ConfiguredRequests.FromRequestBuilders(ConfiguredResponses);
+            var match = configuredRequests.Match(request);
 
             if(match == null)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent($"No response configured for {request.RequestUri.PathAndQuery}")
+                    Content = new StringContent($"No response configured for {request.RequestUri.PathAndQuery}{Environment.NewLine}{configuredRequests.GetCurrentConfiguration()}")
                 };
             }
 
@@ -219,6 +218,9 @@ namespace Codenizer.HttpClient.Testable
                     streamContent.CopyToAsync(memoryStream).GetAwaiter().GetResult();
                     memoryStream.Seek(0, SeekOrigin.Begin);
                     clone.Content = new StreamContent(memoryStream);
+                    break;
+                case null:
+                    clone.Content = null;
                     break;
                 default:
                     var buffer = request.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();

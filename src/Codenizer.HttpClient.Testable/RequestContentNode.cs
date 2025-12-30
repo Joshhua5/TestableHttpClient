@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 
 namespace Codenizer.HttpClient.Testable;
@@ -5,10 +6,16 @@ namespace Codenizer.HttpClient.Testable;
 internal class RequestContentNode : RequestNode
 {
     private readonly string? _expectedContent;
+    private readonly Func<HttpContent, bool>? _assertion;
 
     public RequestContentNode(string? expectedContent)
     {
         _expectedContent = expectedContent;
+    }
+
+    public RequestContentNode(Func<HttpContent, bool> assertion)
+    {
+        _assertion = assertion;
     }
     
     public override void Accept(RequestNodeVisitor visitor)
@@ -36,11 +43,23 @@ internal class RequestContentNode : RequestNode
         RequestBuilder = requestBuilder;
     }
 
-    public bool Match(HttpContent content)
+    public bool Match(HttpContent? content)
     {
-        if (_expectedContent == null)
+        if (_expectedContent == null && _assertion == null)
         {
             return true;
+        }
+
+        if (content != null && _assertion != null)
+        {
+            try
+            {
+                return _assertion(content);
+            }
+            catch
+            {
+                return false;
+            }
         }
         
         if (content != null)

@@ -101,5 +101,28 @@ namespace Codenizer.HttpClient.Testable
         /// <param name="content"></param>
         /// <returns>The current <see cref="IRequestBuilder"/> instance</returns>
         IRequestBuilder ForContent(string content);
+
+        /// <summary>
+        /// Respond to a request that matches the given content assertion
+        /// </summary>
+        /// <param name="assertion">The assertion to apply to the content</param>
+        /// <returns>The current <see cref="IRequestBuilder"/> instance</returns>
+        IRequestBuilder ForContent(System.Func<System.Net.Http.HttpContent, bool> assertion);
+
+        /// <summary>
+        /// Respond to a request that contains the given header
+        /// </summary>
+        /// <param name="key">The header key</param>
+        /// <param name="value">The header value</param>
+        /// <returns>The current <see cref="IRequestBuilder"/> instance</returns>
+        IRequestBuilder WithHeader(string key, string value);
+
+        /// <summary>
+        /// Respond to a request that strictly contains the given cookie
+        /// </summary>
+        /// <param name="name">The cookie name</param>
+        /// <param name="value">The cookie value</param>
+        /// <returns>The current <see cref="IRequestBuilder"/> instance</returns>
+        IRequestBuilder WithCookie(string name, string value);
     }
 }

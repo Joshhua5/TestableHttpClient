@@ -8,7 +8,7 @@ namespace Codenizer.HttpClient.Testable
     internal class RequestHeadersNode : RequestNode
     {
         private readonly Dictionary<string, string> _headers;
-        private readonly List<RequestContentNode> _requestContentNodes = new();
+        private readonly List<RequestCookieNode> _requestCookieNodes = new();
 
         public RequestHeadersNode(Dictionary<string, string> headers)
         {
@@ -65,9 +65,9 @@ namespace Codenizer.HttpClient.Testable
             return true;
         }
 
-        public RequestContentNode? Match(HttpContent content)
+        public RequestCookieNode? MatchCookies(HttpRequestHeaders headers)
         {
-            return _requestContentNodes.SingleOrDefault(node => node.Match(content));
+            return _requestCookieNodes.SingleOrDefault(node => node.Match(headers));
         }
 
         public override void Accept(RequestNodeVisitor visitor)
@@ -77,26 +77,26 @@ namespace Codenizer.HttpClient.Testable
                 visitor.Header(header.Key, header.Value);
             }
 
-            foreach (var node in _requestContentNodes)
+            foreach (var node in _requestCookieNodes)
             {
                 node.Accept(visitor);
             }
         }
 
-        public RequestContentNode Add(string? expectedContent)
+        public RequestCookieNode Add(Dictionary<string, string> cookies)
         {
-            var existingContentNode = _requestContentNodes.SingleOrDefault(node => node.Match(expectedContent));
+            var existingCookieNode = _requestCookieNodes.SingleOrDefault(node => node.Matches(cookies));
 
-            if (existingContentNode == null)
+            if (existingCookieNode == null)
             {
-                var requestContentNode = new RequestContentNode(expectedContent);
+                var requestCookieNode = new RequestCookieNode(cookies);
 
-                _requestContentNodes.Add(requestContentNode);
+                _requestCookieNodes.Add(requestCookieNode);
 
-                return requestContentNode;
+                return requestCookieNode;
             }
 
-            return existingContentNode;
+            return existingCookieNode;
         }
     }
 }

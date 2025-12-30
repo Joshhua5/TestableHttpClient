@@ -41,8 +41,19 @@ namespace Codenizer.HttpClient.Testable
                     var headers = requestBuilder.BuildRequestHeaders();
 
                     var headersNode = queryNode.Add(headers);
+                    
+                    var cookiesNode = headersNode.Add(requestBuilder.ConfiguredRequestCookies);
+                    
+                    RequestContentNode contentNode;
 
-                    var contentNode = headersNode.Add(requestBuilder.ExpectedContent);
+                    if (requestBuilder.ExpectedContentAssertion != null)
+                    {
+                        contentNode = cookiesNode.Add(requestBuilder.ExpectedContentAssertion);
+                    }
+                    else
+                    {
+                        contentNode = cookiesNode.Add(requestBuilder.ExpectedContent);
+                    }
 
                     contentNode.SetRequestBuilder(requestBuilder);
 
@@ -125,8 +136,10 @@ namespace Codenizer.HttpClient.Testable
             }
 
             var headersNode = queryNode.Match(httpRequestMessage.Headers);
+            
+            var cookiesNode = headersNode?.MatchCookies(httpRequestMessage.Headers);
 
-            var contentNode = headersNode?.Match(httpRequestMessage.Content);
+            var contentNode = cookiesNode?.MatchContent(httpRequestMessage.Content);
             
             return contentNode?.RequestBuilder;
         }

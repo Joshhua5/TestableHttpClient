@@ -52,6 +52,11 @@ namespace Codenizer.HttpClient.Testable
         /// The query parameters configured for the request
         /// </summary>
         public List<KeyValuePair<string, string?>> QueryParameters { get; private set; } = new List<KeyValuePair<string, string?>>();
+        
+        private readonly Dictionary<string, string> _configuredRequestHeaders = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _configuredRequestCookies = new Dictionary<string, string>();
+        
+        internal Dictionary<string, string> ConfiguredRequestCookies => _configuredRequestCookies;
 
         /// <summary>
         /// The path and query of the request to match
@@ -122,7 +127,15 @@ namespace Codenizer.HttpClient.Testable
         /// <summary>
         /// Optional. The expected content of the request.
         /// </summary>
+        /// <summary>
+        /// Optional. The expected content of the request.
+        /// </summary>
         public string? ExpectedContent { get; private set; }
+
+        /// <summary>
+        /// Optional. An assertion to apply to the request content.
+        /// </summary>
+        public Func<HttpContent, bool>? ExpectedContentAssertion { get; private set; }
         
         /// <inheritdoc />
         public IResponseBuilder With(HttpStatusCode statusCode)
@@ -142,6 +155,20 @@ namespace Codenizer.HttpClient.Testable
         public IRequestBuilderForQueryString WithQueryStringParameter(string key)
         {
             return new RequestBuilderForQueryString(this, key);
+        }
+        
+        /// <inheritdoc />
+        public IRequestBuilder WithHeader(string key, string value)
+        {
+            _configuredRequestHeaders.Add(key, value);
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IRequestBuilder WithCookie(string name, string value)
+        {
+            _configuredRequestCookies.Add(name, value);
+            return this;
         }
         
         /// <inheritdoc />
@@ -252,9 +279,19 @@ namespace Codenizer.HttpClient.Testable
             return this;
         }
 
+        /// <inheritdoc />
         public IRequestBuilder ForContent(string content)
         {
             ExpectedContent = content;
+            ExpectedContentAssertion = null;
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IRequestBuilder ForContent(Func<HttpContent, bool> assertion)
+        {
+            ExpectedContentAssertion = assertion;
+            ExpectedContent = null;
             return this;
         }
 
@@ -394,7 +431,7 @@ namespace Codenizer.HttpClient.Testable
         /// <returns>A <c>Dictionary&lt;string, string&gt;</c> containing all request headers</returns>
         internal Dictionary<string, string> BuildRequestHeaders()
         {
-            var headers = new Dictionary<string, string>();
+            var headers = new Dictionary<string, string>(_configuredRequestHeaders);
 
             if (!string.IsNullOrEmpty(Accept))
             {

@@ -400,6 +400,121 @@ handler
 
 Here you can see that the same endpoint returns two different responses based on the request content.
 
+### Match requests with custom headers
+
+You can match requests based on specific header values using `WithHeader`:
+
+```csharp
+handler
+    .RespondTo()
+    .Get()
+    .ForUrl("/api/protected")
+    .WithHeader("X-Api-Key", "secret123")
+    .With(HttpStatusCode.OK)
+    .AndContent("text/plain", "Authorized");
+```
+
+This will only match requests that have the specified header with the exact value. Header matching is case-insensitive for the value.
+
+You can also combine multiple header requirements:
+
+```csharp
+handler
+    .RespondTo()
+    .Get()
+    .ForUrl("/api/data")
+    .WithHeader("X-Request-Id", "12345")
+    .WithHeader("X-Correlation-Id", "abc")
+    .With(HttpStatusCode.OK);
+```
+
+### Match requests with cookies
+
+To match requests that include specific cookies, use `WithCookie`:
+
+```csharp
+handler
+    .RespondTo()
+    .Get()
+    .ForUrl("/api/user")
+    .WithCookie("session", "user-token-123")
+    .With(HttpStatusCode.OK)
+    .AndContent("application/json", "{\"name\": \"John\"}");
+```
+
+This matches requests that have the `Cookie` header containing `session=user-token-123`.
+
+### Match requests with content predicates
+
+For complex content matching scenarios, you can use a predicate function:
+
+```csharp
+handler
+    .RespondTo()
+    .Post()
+    .ForUrl("/api/orders")
+    .ForContent(content => 
+    {
+        var body = content.ReadAsStringAsync().GetAwaiter().GetResult();
+        return body.Contains("\"priority\": \"high\"");
+    })
+    .With(HttpStatusCode.OK)
+    .AndContent("text/plain", "High priority order accepted");
+```
+
+This allows you to implement custom matching logic based on the request content.
+
+### Dynamic responses with callbacks
+
+Instead of static content, you can generate dynamic responses based on the request:
+
+#### Sync callbacks
+
+```csharp
+handler
+    .RespondTo()
+    .Get()
+    .ForUrl("/api/echo")
+    .With(HttpStatusCode.OK)
+    .AndContent("text/plain", request => $"You requested: {request.RequestUri.PathAndQuery}");
+```
+
+#### Async callbacks
+
+```csharp
+handler
+    .RespondTo()
+    .Get()
+    .ForUrl("/api/async-data")
+    .With(HttpStatusCode.OK)
+    .AndContent("application/json", async request => 
+    {
+        await Task.Delay(10); // Simulate async work
+        return new { Timestamp = DateTime.UtcNow, Path = request.RequestUri.PathAndQuery };
+    });
+```
+
+#### Callbacks returning different types
+
+Callbacks can return:
+- **String**: Returned as-is
+- **Byte array**: Returned as binary content
+- **Object**: Automatically serialized to JSON
+
+```csharp
+// Return a JSON object dynamically
+handler
+    .RespondTo()
+    .Post()
+    .ForUrl("/api/process")
+    .With(HttpStatusCode.OK)
+    .AndContent("application/json", request => 
+    {
+        var inputData = request.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+        return new { Processed = true, OriginalLength = inputData?.Length ?? 0 };
+    });
+```
+
 ### A sequence of responses
 
 In some cases you might want to have multiple responses configured for the same endpoint, for example when you call a status endpoint of a job.

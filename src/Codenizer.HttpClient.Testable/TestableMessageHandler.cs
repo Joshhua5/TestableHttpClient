@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -25,7 +26,7 @@ namespace Codenizer.HttpClient.Testable
         /// <summary>
         /// Returns the list of requests that were captured by this message handler
         /// </summary>
-        public List<HttpRequestMessage> Requests { get; } = new List<HttpRequestMessage>();
+        public ConcurrentQueue<HttpRequestMessage> Requests { get; } = new ConcurrentQueue<HttpRequestMessage>();
 
         /// <summary>
         /// Returns the list of responses that are configured for this message handler
@@ -55,7 +56,7 @@ namespace Codenizer.HttpClient.Testable
         {
             var stopwatch = Stopwatch.StartNew();
 
-            Requests.Add(CloneRequest(request));
+            Requests.Enqueue(CloneRequest(request));
 
             if (_exceptionToThrow != null)
             {
@@ -220,7 +221,8 @@ namespace Codenizer.HttpClient.Testable
                     clone.Content = new StreamContent(memoryStream);
                     break;
                 default:
-                    clone.Content = null;
+                    var buffer = request.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+                    clone.Content = new ByteArrayContent(buffer);
                     break;
             }
 

@@ -41,7 +41,7 @@ namespace Codenizer.HttpClient.Testable
             {
                 if (headers.TryGetValues(kv.Key, out var values))
                 {
-                    if (values.All(v => v != kv.Value))
+                    if (values.All(v => !string.Equals(v, kv.Value, System.StringComparison.OrdinalIgnoreCase)))
                     {
                         return false;
                     }

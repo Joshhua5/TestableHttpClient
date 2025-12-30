@@ -83,7 +83,7 @@ namespace Codenizer.HttpClient.Testable
                 .Replace("?", "") // When using the Query property from Uri you will get a leading ?
                 .Split('&')
                 .Select(p => p.Split('='))
-                .Select(p => new KeyValuePair<string, string?>(p[0],  p.Length == 2 ? p[1] : null))
+                .Select(p => new KeyValuePair<string, string?>(System.Uri.UnescapeDataString(p[0]),  p.Length == 2 ? System.Uri.UnescapeDataString(p[1]) : null))
                 .ToList();
         }
 

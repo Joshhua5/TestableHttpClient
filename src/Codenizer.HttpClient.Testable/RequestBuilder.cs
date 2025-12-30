@@ -41,7 +41,7 @@ namespace Codenizer.HttpClient.Testable
                 QueryParameters = parts[1]
                     .Split('&')
                     .Select(p => p.Split('='))
-                    .Select(p => new KeyValuePair<string, string?>(p[0], p.Length == 2 ? p[1] : null))
+                    .Select(p => new KeyValuePair<string, string?>(System.Uri.UnescapeDataString(p[0]), p.Length == 2 ? System.Uri.UnescapeDataString(p[1]) : null))
                     .ToList();
             }
 
@@ -224,7 +224,7 @@ namespace Codenizer.HttpClient.Testable
                 QueryParameters = parts[1]
                     .Split('&')
                     .Select(p => p.Split('='))
-                    .Select(p => new KeyValuePair<string, string?>(p[0], p.Length == 2 ? p[1] : null))
+                    .Select(p => new KeyValuePair<string, string?>(System.Uri.UnescapeDataString(p[0]), p.Length == 2 ? System.Uri.UnescapeDataString(p[1]) : null))
                     .ToList();
             }
 

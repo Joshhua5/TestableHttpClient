@@ -43,9 +43,9 @@ internal class RequestContentNode : RequestNode
             return true;
         }
         
-        if (content is StringContent stringContent)
+        if (content != null)
         {
-            var requestContent = stringContent.ReadAsStringAsync().GetAwaiter().GetResult();
+            var requestContent = content.ReadAsStringAsync().GetAwaiter().GetResult();
 
             return string.Equals(_expectedContent, requestContent);
         }

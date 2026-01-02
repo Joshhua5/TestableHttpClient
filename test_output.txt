@@ -1,17 +1,33 @@
   Determining projects to restore...
-/Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/Codenizer.HttpClient.Testable.Tests.Unit.csproj : warning NU1510: PackageReference System.Net.Http will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
   All projects are up-to-date for restore.
-/Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/Codenizer.HttpClient.Testable.Tests.Unit.csproj : warning NU1510: PackageReference System.Net.Http will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary. [TargetFramework=net10.0]
   Codenizer.HttpClient.Testable -> /Users/joshuawaring/Documents/Repos/TestableHttpClient/src/Codenizer.HttpClient.Testable/bin/Debug/net10.0/Codenizer.HttpClient.Testable.dll
+  Codenizer.HttpClient.Testable.AnthropicServer -> /Users/joshuawaring/Documents/Repos/TestableHttpClient/src/Codenizer.HttpClient.Testable.AnthropicServer/bin/Debug/net10.0/Codenizer.HttpClient.Testable.AnthropicServer.dll
+  Codenizer.HttpClient.Testable.SentryServer -> /Users/joshuawaring/Documents/Repos/TestableHttpClient/src/Codenizer.HttpClient.Testable.SentryServer/bin/Debug/net10.0/Codenizer.HttpClient.Testable.SentryServer.dll
+  Codenizer.HttpClient.Testable.AirtableServer -> /Users/joshuawaring/Documents/Repos/TestableHttpClient/src/Codenizer.HttpClient.Testable.AirtableServer/bin/Debug/net10.0/Codenizer.HttpClient.Testable.AirtableServer.dll
   Codenizer.HttpClient.Testable.Tests.Unit -> /Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/bin/Debug/net10.0/Codenizer.HttpClient.Testable.Tests.Unit.dll
 Test run for /Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/bin/Debug/net10.0/Codenizer.HttpClient.Testable.Tests.Unit.dll (.NETCoreApp,Version=v10.0)
 VSTest version 18.0.1 (arm64)
 
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
-  Failed Codenizer.HttpClient.Testable.Tests.Unit.ComplexSimulatedServerTests.SearchServer_ReturnsFilteredResults_WhenQueryParamIsPresent [48 ms]
+  Failed Codenizer.HttpClient.Testable.AnthropicServer.Tests.AnthropicServerTests.CanManageBatches [31 ms]
   Error Message:
-   Expected response.StatusCode to be HttpStatusCode.OK {value: 200}, but found HttpStatusCode.InternalServerError {value: 500}.
+   Expected cancelResponse.StatusCode to be HttpStatusCode.OK {value: 200} because No response configured for /v1/messages/batches/batch_ba54843d-f114-45bf-ab9b-4dfb275959f7/cancel
+POST
+    *://
+        *
+            /v1/messages/batches/{id}/cancelResponse:
+                    HTTP 500 InternalServerError
+    https://
+        api.anthropic.com
+            /v1/messages/batchesResponse:
+                    HTTP 500 InternalServerError
+GET
+    *://
+        *
+            /v1/messages/batches/{id}Response:
+                    HTTP 500 InternalServerError
+, but found HttpStatusCode.InternalServerError {value: 500}.
   Stack Trace:
      at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
    at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
@@ -20,22 +36,7 @@ A total of 1 test files matched the specified pattern.
    at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
    at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
    at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
-   at Codenizer.HttpClient.Testable.Tests.Unit.ComplexSimulatedServerTests.SearchServer_ReturnsFilteredResults_WhenQueryParamIsPresent() in /Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/ComplexSimulatedServerTests.cs:line 57
---- End of stack trace from previous location ---
-  Failed Codenizer.HttpClient.Testable.Tests.Unit.ComplexSimulatedServerTests.ChaosServer_PropagatesExceptions_WhenInternalErrorOccurs [4 ms]
-  Error Message:
-   Expected a <System.Net.Http.HttpRequestException> to be thrown, but no exception was thrown.
-  Stack Trace:
-     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
-   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
-   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
-   at FluentAssertions.Execution.AssertionScope.FailWith(String message)
-   at FluentAssertions.Specialized.DelegateAssertionsBase`2.ThrowInternal[TException](Exception exception, String because, Object[] becauseArgs)
-   at FluentAssertions.Specialized.AsyncFunctionAssertions`2.ThrowAsync[TException](String because, Object[] becauseArgs)
-   at FluentAssertions.ExceptionAssertionsExtensions.WithMessage[TException](Task`1 task, String expectedWildcardPattern, String because, Object[] becauseArgs)
-   at Codenizer.HttpClient.Testable.Tests.Unit.ComplexSimulatedServerTests.ChaosServer_PropagatesExceptions_WhenInternalErrorOccurs() in /Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/ComplexSimulatedServerTests.cs:line 73
+   at Codenizer.HttpClient.Testable.AnthropicServer.Tests.AnthropicServerTests.CanManageBatches() in /Users/joshuawaring/Documents/Repos/TestableHttpClient/test/Codenizer.HttpClient.Testable.Tests.Unit/AnthropicServerTests.cs:line 102
 --- End of stack trace from previous location ---
 
-Failed!  - Failed:     2, Passed:     2, Skipped:     0, Total:     4, Duration: 55 ms - Codenizer.HttpClient.Testable.Tests.Unit.dll (net10.0)
+Failed!  - Failed:     1, Passed:     2, Skipped:     0, Total:     3, Duration: 64 ms - Codenizer.HttpClient.Testable.Tests.Unit.dll (net10.0)

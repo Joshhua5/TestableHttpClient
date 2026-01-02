@@ -19,6 +19,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Codenizer.HttpClient.Testable\Codenizer.HttpClient.Testable.csproj" />
+    <ProjectReference Include="..\..\src\Codenizer.HttpClient.Testable.SentryServer\Codenizer.HttpClient.Testable.SentryServer.csproj" />
+    <ProjectReference Include="..\..\src\Codenizer.HttpClient.Testable.AirtableServer\Codenizer.HttpClient.Testable.AirtableServer.csproj" />
+    <ProjectReference Include="..\..\src\Codenizer.HttpClient.Testable.AnthropicServer\Codenizer.HttpClient.Testable.AnthropicServer.csproj" />
   </ItemGroup>
 
 </Project>
